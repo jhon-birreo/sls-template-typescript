@@ -1,0 +1,46 @@
+service: sls-clean-template
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  memorySize: 256
+  stage: ${opt:stage,'dev'}
+  region: us-east-1
+  environment:
+    USER_TABLE_NAME: ${self:custom.UsersTable.name}
+    STAGE: ${self:provider.stage}
+  iamRoleStatements:
+    - ${file(src/layers/iam/UsersTableIAM.yml):UsersTableIAM}
+
+functions:
+  - ${file(src/layers/endpoints/userEndpoint.yml)}
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-dynamodb-local
+  - serverless-offline
+
+resources:
+  Resources:
+    UsersTable: ${file(src/layers/resources/UsersTable.yml):UsersTable}
+
+
+custom:
+  UsersTable:
+    name: !Ref UsersTable
+    arn: !GetAtt UsersTable.Arn
+  dynamodb:
+    stages:
+      - ${self:provider.stage}
+    start: 
+      host : localhost
+      port: 8000
+      migrate: true
+      noStart: true
+      # inMemory: true
+      # heapInitial: 200m
+      # heapMax: 1g
+      # convertEmptyValues: true
+  serverless-offline:
+  resourceRoutes: true
