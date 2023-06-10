@@ -23,18 +23,3 @@ services:
       AWS_SECRET_ACCESS_KEY: local
     depends_on:
       - dynamodb-local
-
-  # dynamodb-migrator:
-  #   image: banst/awscli:1.18.76
-  #   platform: linux/amd64
-  #   container_name: dynamodb-migrator
-  #   working_dir: /home/dynamodblocal
-  #   command: dynamodb create-table --cli-input-json file://./schema/test.json --debug --region us-east-1 --endpoint-url http://dynamodb-local:8000
-  #   volumes:
-  #     - ./schema:/home/dynamodblocal
-  #   environment:
-  #     AWS_ACCESS_KEY_ID: local
-  #     AWS_SECRET_ACCESS_KEY: local
-  #     AWS_REGION: "us-east-1"
-  #   depends_on:
-  #     - dynamodb-local

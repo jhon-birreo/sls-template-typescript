@@ -8,13 +8,20 @@ provider:
   stage: ${opt:stage,'dev'}
   region: us-east-1
   environment:
-    USER_TABLE_NAME: ${self:custom.UsersTable.name}
+    USER_TABLE_NAME: UsersTable-${self:provider.stage}
     STAGE: ${self:provider.stage}
+    APP_ENVIRONMENT: ${self:provider.stage}
+    SERVICE_NAME: ${self:service}
+    NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000'
+    DYNAMODB_LOCAL_ENDPOINT: http://localhost:8000
+    AMAZON_REGION: ${self:provider.region}
+    AMAZON_ACCOUNTID: '00000'
   iamRoleStatements:
-    - ${file(src/layers/iam/UsersTableIAM.yml):UsersTableIAM}
+    - ${file(infrastructure/iam/UsersTableIAM.yml):UsersTableIAM}
 
 functions:
-  - ${file(src/layers/endpoints/userEndpoint.yml)}
+  - ${file(src/lambdas/endpoints/healthy.yml)}
+  - ${file(src/lambdas/endpoints/user.yml)}
 
 plugins:
   - serverless-plugin-typescript
@@ -23,8 +30,7 @@ plugins:
 
 resources:
   Resources:
-    UsersTable: ${file(src/layers/resources/UsersTable.yml):UsersTable}
-
+    UsersTable: ${file(infrastructure/resource/UsersTable.yml):UsersTable}
 
 custom:
   UsersTable:
@@ -38,9 +44,11 @@ custom:
       port: 8000
       migrate: true
       noStart: true
-      # inMemory: true
-      # heapInitial: 200m
-      # heapMax: 1g
-      # convertEmptyValues: true
+      inMemory: true
+      heapInitial: 200m
+      heapMax: 1g
+      convertEmptyValues: true
   serverless-offline:
+    httPort: 3000
+    host: '127.0.0.1'
   resourceRoutes: true
